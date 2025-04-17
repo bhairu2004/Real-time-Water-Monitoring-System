@@ -20,8 +20,8 @@ async def broadcast_to_frontends(message):
             disconnected.add(client)
     connected_frontends.difference_update(disconnected)
 
-async def handler(websocket):
-    if websocket.request.path == "/frontend":
+async def handler(websocket, path):
+    if path == "/frontend":
         print("Frontend connected.")
         connected_frontends.add(websocket)
         await websocket.send(f"{latest_data['temperature']},{latest_data['tds']},{latest_data['ph']}")
@@ -30,7 +30,7 @@ async def handler(websocket):
         finally:
             connected_frontends.remove(websocket)
             print("Frontend disconnected.")
-    elif websocket.request.path == "/esp32":
+    elif path == "/esp32":
         print("ESP32 connected.")
         try:
             async for message in websocket:
