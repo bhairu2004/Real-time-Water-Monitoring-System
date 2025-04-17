@@ -1,7 +1,7 @@
 import asyncio
 import websockets
 import os
-
+import http
 connected_frontends = set()
 latest_data = {
     "temperature": 0.0,
@@ -49,9 +49,15 @@ async def handler(websocket, path):
         print("Unknown path. Closing connection.")
         await websocket.close()
 
+async def process_request(path, request_headers):
+    # Respond to non-WebSocket requests (e.g., health checks)
+    if request_headers.get("Upgrade", "").lower() != "websocket":
+        return http.HTTPStatus.OK, [], b"OK\n"
+    return None
+
 async def main():
     print(f"Starting server on port {PORT}...")
-    async with websockets.serve(handler, "0.0.0.0", PORT):
+    async with websockets.serve(handler, "0.0.0.0", PORT,process_request=process_request):
         await asyncio.Future()  # Keep alive
 
 if __name__ == "__main__":
